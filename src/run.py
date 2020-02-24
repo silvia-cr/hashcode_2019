@@ -68,20 +68,64 @@ def _get_max_transition(transitions, slide=None):
     max_points = -1
 
     for transition in transitions:
-        if transition.contains(slide) and transition.can_use() and transition.points > max_points:
+        if transition.can_use(slide) and transition.points > max_points:
             max_transition = transition
             max_points = transition.points
 
     return max_transition, max_points
 
 
-def get_slideshow(transitions, slideshow=[], points=0):
-    transition, points = _get_max_transition(transitions)
-    transition.use()
+def _calculate_points(slide, transitions):
 
-    #choose order and continue here
-    slideshow.append(transition.slide1)
-    slideshow.append(transition.slide2)
+    points = 0
+    for transition in transitions:
+        if slide == transition.slide1 or slide == transition.slide2:
+            points += transition.points
+
+    return points
+
+
+def _get_slide_points(slides, transitions):
+    idx = 0
+    points = list()
+    while idx < len(slides):
+        slide_points = _calculate_points(slide=slides[idx], transitions=transitions)
+        points.append(slide_points)
+        idx += 1
+
+    return points
+
+
+def _get_idx_max(points):
+    max_value = max(points)
+    return points.index(max_value)
+
+
+def _add_slide(slideshow, element):
+    if isinstance(element, Slide):
+        slide = element
+    elif isinstance(element, Transition):
+        slide = element.slide1
+        if not slide.can_use():
+            slide = element.slide2
+
+    slide.use()
+    slideshow.append(slide)
+    return slideshow
+
+
+def get_slideshow(transitions, slides):
+    slideshow = list()
+    slides = list(slides)
+    slides_points = _get_slide_points(slides=slides, transitions=transitions)
+    max_idx = _get_idx_max(slides_points)
+    slide = slides[max_idx]
+
+    slideshow =_add_slide(slideshow, slide)
+
+    # put into loop
+    transition, points = _get_max_transition(transitions, slide)
+    slideshow = _add_slide(slideshow, transition)
 
     return (slideshow, points)
 
@@ -104,7 +148,7 @@ if __name__ == '__main__':
         slides = build_slides(photo_set)
         transitions = build_transitions(slides)
 
-        slideshow, points = get_slideshow(transitions)
+        slideshow, points = get_slideshow(transitions=transitions, slides=slides)
 
         print('slideshow: ' + str(slideshow))
         print(filename + ': ' + str(points))

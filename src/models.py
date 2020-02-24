@@ -49,15 +49,12 @@ class Transition(object):
         self.slide2 = slide2
         self.points = self._calculate_points()
 
-    def can_use(self):
-        return self.slide1.can_use() and self.slide2.can_use()
+    def can_use(self, slide):
+        return (self.slide1 == slide and self.slide2.can_use()) or (self.slide2 == slide and self.slide1.can_use())
 
     def use(self):
         self.slide1.use()
         self.slide2.use()
-
-    def contains(self, slide):
-        return not slide or self.slide1 == slide or self.slide2 == slide
 
     def _calculate_points(self):
         common = Transition._get_common_points(self.slide1.tags, self.slide2.tags)
@@ -75,4 +72,4 @@ class Transition(object):
         return len(set1 - set2)
 
     def __repr__(self):
-        return '\n\n[Slide1: ' + str(self.slide1) + ';\nSlide2: ' + str(self.slide2) + ';\nPOINTS: ' + str(self.points()) + ']'
+        return '\n\n[Slide1: ' + str(self.slide1) + ';\nSlide2: ' + str(self.slide2) + ';\nPOINTS: ' + str(self.points) + ']'
