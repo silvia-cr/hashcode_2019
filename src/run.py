@@ -5,13 +5,13 @@ filenames = [
 ]
 
 
-def build_photo(line):
+def build_photo(id, line):
     elements = line.split()
 
     orientation = elements[0]
     tags = set(elements[2:2+int(elements[1])])
 
-    return Photo(orientation, tags)
+    return Photo(id=id, orientation=orientation, tags=tags)
 
 
 def _build_horizontal_slides(photos):
@@ -27,7 +27,6 @@ def _build_vertical_slides(photos):
     slides = set()
     idx = 0
     photos = list(photos)
-
     while idx < len(photos):
         idx2 = idx + 1
         while idx2 < len(photos):
@@ -38,10 +37,10 @@ def _build_vertical_slides(photos):
     return slides
 
 
-def build_slides(photo_list):
+def build_slides(photo_set):
 
-    horizontal_photos = {photo for photo in photo_list if photo.orientation == 'H'}
-    vertical_photos = {photo for photo in photo_list if photo.orientation == 'V'}
+    horizontal_photos = {photo for photo in photo_set if photo.orientation == 'H'}
+    vertical_photos = {photo for photo in photo_set if photo.orientation == 'V'}
 
     slides = _build_horizontal_slides(horizontal_photos)
     slides = slides | _build_vertical_slides(vertical_photos)
@@ -69,9 +68,9 @@ def _get_max_transition(transitions, slide=None):
     max_points = -1
 
     for transition in transitions:
-        if transition.contains(slide) and transition.can_use() and transition.points() > max_points:
+        if transition.contains(slide) and transition.can_use() and transition.points > max_points:
             max_transition = transition
-            max_points = transition.points()
+            max_points = transition.points
 
     return max_transition, max_points
 
@@ -95,12 +94,14 @@ if __name__ == '__main__':
         with open(filename, 'r') as file:
             lines = file.readlines()
 
-        photo_list = set()
+        photo_set = set()
+        id = 0
         for line in lines[1:]:
-            photo = build_photo(line)
-            photo_list.add(photo)
+            photo = build_photo(id=id, line=line)
+            photo_set.add(photo)
+            id += 1
 
-        slides = build_slides(photo_list)
+        slides = build_slides(photo_set)
         transitions = build_transitions(slides)
 
         slideshow, points = get_slideshow(transitions)

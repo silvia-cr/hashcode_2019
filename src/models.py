@@ -1,12 +1,10 @@
 class Photo(object):
 
-    def __init__(self, orientation, tags):
+    def __init__(self, id, orientation, tags):
+        self.id = id
         self.orientation = orientation
         self.tags = tags
         self.used = False
-
-    def tag_numbers(self):
-        return len(self.tags)
 
     def use(self):
         self.used = True
@@ -15,7 +13,7 @@ class Photo(object):
         return self.used
 
     def __repr__(self):
-        return self.orientation + ' ' + str(self.tags) + ' ' + str(self.is_used())
+        return str(self.id) + ' ' + self.orientation + ' ' + str(self.tags) + ' ' + str(self.is_used())
 
 
 class Slide(object):
@@ -49,13 +47,7 @@ class Transition(object):
     def __init__(self, slide1: Slide, slide2: Slide):
         self.slide1 = slide1
         self.slide2 = slide2
-
-    def points(self):
-        common = Transition._get_common_points(self.slide1.tags, self.slide2.tags)
-        first = Transition._get_exclusion_points(self.slide1.tags, self.slide2.tags)
-        second = Transition._get_common_points(self.slide2.tags, self.slide1.tags)
-
-        return min([common, first, second])
+        self.points = self._calculate_points()
 
     def can_use(self):
         return self.slide1.can_use() and self.slide2.can_use()
@@ -66,6 +58,13 @@ class Transition(object):
 
     def contains(self, slide):
         return not slide or self.slide1 == slide or self.slide2 == slide
+
+    def _calculate_points(self):
+        common = Transition._get_common_points(self.slide1.tags, self.slide2.tags)
+        first = Transition._get_exclusion_points(self.slide1.tags, self.slide2.tags)
+        second = Transition._get_exclusion_points(self.slide2.tags, self.slide1.tags)
+
+        return min([common, first, second])
 
     @staticmethod
     def _get_common_points(set1, set2):
