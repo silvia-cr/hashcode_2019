@@ -2,6 +2,10 @@ from models import Photo, Slide, Transition
 
 filenames = [
     'examples/a_example.txt',
+    # 'examples/b_lovely_landscapes.txt',
+    # 'examples/c_memorable_moments.txt',
+    # 'examples/d_pet_pictures.txt',
+    # 'examples/e_shiny_selfies.txt',
 ]
 
 
@@ -48,6 +52,10 @@ def build_slides(photo_set):
     return slides
 
 
+def _has_common_tags(slide1, slide2):
+    return len(slide1.tags & slide2.tags) > 0
+
+
 def build_transitions(slides):
     transitions = set()
     idx = 0
@@ -56,16 +64,17 @@ def build_transitions(slides):
     while idx < len(slides):
         idx2 = idx + 1
         while idx2 < len(slides):
-            transitions.add(Transition(slide1=slides[idx], slide2=slides[idx2]))
+            if _has_common_tags(slide1=slides[idx], slide2=slides[idx2]):
+                transitions.add(Transition(slide1=slides[idx], slide2=slides[idx2]))
             idx2 += 1
         idx += 1
 
     return transitions
 
 
-def _get_max_transition(transitions, slide=None):
+def _get_max_transition(transitions, slide):
     max_transition = None
-    max_points = -1
+    max_points = 0
 
     for transition in transitions:
         if transition.can_use(slide) and transition.points > max_points:
@@ -111,23 +120,32 @@ def _add_slide(slideshow, element):
 
     slide.use()
     slideshow.append(slide)
-    return slideshow
+    return slideshow, slide
 
 
 def get_slideshow(transitions, slides):
     slideshow = list()
     slides = list(slides)
+
     slides_points = _get_slide_points(slides=slides, transitions=transitions)
     max_idx = _get_idx_max(slides_points)
     slide = slides[max_idx]
 
-    slideshow =_add_slide(slideshow, slide)
+    slideshow, slide =_add_slide(slideshow, slide)
+    transition, total = _get_max_transition(transitions, slide)
 
-    # put into loop
-    transition, points = _get_max_transition(transitions, slide)
-    slideshow = _add_slide(slideshow, transition)
+    while transition:
+        slideshow, slide = _add_slide(slideshow, transition)
+        transition, points = _get_max_transition(transitions, slide)
 
-    return (slideshow, points)
+        import pdb
+        pdb.set_trace()
+
+        total += points
+
+        print(points)
+
+    return slideshow, total
 
 
 if __name__ == '__main__':
