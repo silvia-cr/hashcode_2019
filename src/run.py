@@ -138,14 +138,22 @@ def get_slideshow(transitions, slides):
         slideshow, slide = _add_slide(slideshow, transition)
         transition, points = _get_max_transition(transitions, slide)
 
-        import pdb
-        pdb.set_trace()
-
         total += points
 
-        print(points)
-
     return slideshow, total
+
+
+def write_output(filename, slideshow):
+    output = str(len(slideshow))
+
+    for slide in slideshow:
+        output += '\n' + str(slide.photo1.id)
+
+        if slide.photo2:
+            output += ' ' + str(slide.photo2.id)
+
+    with open(filename[:-4] + 'output.txt', 'w') as file:
+        file.write(output)
 
 
 if __name__ == '__main__':
@@ -168,8 +176,8 @@ if __name__ == '__main__':
 
         slideshow, points = get_slideshow(transitions=transitions, slides=slides)
 
-        print('slideshow: ' + str(slideshow))
-        print(filename + ': ' + str(points))
+        write_output(filename=filename, slideshow=slideshow)
+
         total += points
 
     print('Total: ' + str(total))
